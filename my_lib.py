@@ -1,6 +1,15 @@
 import cv2 as cv
 import pytesseract
 import difflib
+import numpy as np
+
+
+def read_img(kyrillic_name):
+    f = open(kyrillic_name, "rb")
+    chunk = f.read()
+    chunk_arr = np.frombuffer(chunk, dtype=np.uint8)
+    img = cv.imdecode(chunk_arr, cv.IMREAD_COLOR)
+    return img
 
 
 def get_without_back(img, wt=0.75, md=17):
