@@ -38,7 +38,7 @@ def get_without_back2(img):
     return img2
 
 
-def get_text_from_img(img, leng='rus', oem='3', psm='4'):
+def get_text_from_img(img, leng='rus+eng', oem='3', psm='4'):
     """
     :param leng - язык
         0. rus
