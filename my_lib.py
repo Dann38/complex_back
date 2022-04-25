@@ -1,3 +1,5 @@
+import random
+
 import cv2 as cv
 import pytesseract
 import difflib
@@ -5,8 +7,8 @@ import numpy as np
 
 
 def read_img(kyrillic_name):
-    f = open(kyrillic_name, "rb")
-    chunk = f.read()
+    with open(kyrillic_name, "rb") as f:
+        chunk = f.read()
     chunk_arr = np.frombuffer(chunk, dtype=np.uint8)
     img = cv.imdecode(chunk_arr, cv.IMREAD_COLOR)
     return img
@@ -33,10 +35,18 @@ def get_without_back(img, wt=0.75, md=17):
 
 def get_without_back2(img):
     # img2 = cv.medianBlur(img2, 3)
-    img2 = cv.bitwise_not(cv.Canny(img, 100, 200))
-    img2 = cv.bitwise_and(img, img, mask=img2)
+    img2 = img.filter(cv.ImageFilter.UnsharpMask(radius=2, percent=150))
     return img2
 
+def get_without_back3(img):
+    # img2 = cv.medianBlur(img2, 3)
+    kernel = np.array([[0, 0, 0],
+                       [-1, 7, 1],
+                       [0, 0, 0]])
+
+    kernel = 1/5*kernel
+    img2 = cv.filter2D(img, -1, kernel)
+    return img2
 
 def get_text_from_img(img, leng='rus+eng', oem='3', psm='4'):
     """

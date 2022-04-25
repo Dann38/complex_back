@@ -18,7 +18,7 @@ def main(name_file):
     WIDTH = 900
     HEIGHT = WIDTH * height // width
 
-    only_text = get_without_back(img)
+    only_text = get_without_back3(img)
 
     rez1 = get_text_from_img(img)
     rez2 = get_text_from_img(only_text)
