@@ -62,8 +62,9 @@ def main(argv):
 
             # img_before = cv2.imread(path)
             img_before = read_img(path)
-            img_without_frame = remove_frame(img_before)
-            img_after = get_without_back3(img_without_frame)
+            img_without_frame1 = remove_frame(img_before, 0.05)
+            img_without_frame2 = remove_frame(img_without_frame1, 0.14)
+            img_after = get_without_back3(img_without_frame2)
             # img_after = img_without_frame
             text_before = get_text_from_img(img_before)
             text_after = get_text_from_img(img_after)

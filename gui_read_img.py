@@ -18,9 +18,9 @@ def main(name_file):
     WIDTH = 900
     HEIGHT = WIDTH * height // width
 
-    img_without_frame = remove_frame(img)
-    only_text = get_without_back3(img_without_frame)
-    # only_text = remove_frame(only_text)
+    img_without_frame1 = remove_frame(img, 0.05)
+    img_without_frame2 = remove_frame(img_without_frame1, 0.12)
+    only_text = get_without_back3(img_without_frame2)
     # only_text = get_without_back3(img)
 
 

@@ -104,18 +104,31 @@ def get_img_selected_text(img, leng='rus+eng', oem='3', psm='4'):
     return img
 
 
-def remove_frame(img):
+def remove_frame(img, frame_prc=0.1):
     sh = img.shape
     h, w = sh[0], sh[1]
 
     # Получаем массивы диагоналей
     C = h/w
     f = lambda x: round(C*x)
-    array_1 = np.array([img[f(xi), xi, :].sum() for xi in range(w)])
-    array_2 = np.array([img[f(xi), (w-1)-xi, :].sum() for xi in range(w)])
+    print(sh)
+    if len(sh) == 2:
+        array_1 = np.array([img[f(xi), xi] for xi in range(w)])
+        array_2 = np.array([img[f(xi), (w - 1) - xi] for xi in range(w)])
+
+        array_3 = np.array([img[round(xi * C), round(w / 2)] for xi in range(w)])
+        array_4 = np.array([img[round(h / 2), xi] for xi in range(w)])
+    else:
+        array_1 = np.array([img[f(xi), xi, :].sum() for xi in range(w)])
+        array_2 = np.array([img[f(xi), (w-1)-xi,].sum() for xi in range(w)])
+
+        array_3 = np.array([img[round(xi*C), round(w/2), :].sum() for xi in range(w)])
+        array_4 = np.array([img[round(h/2), xi, :].sum() for xi in range(w)])
 
     # Сигнал скачков яркости
+    # d = (array_1 + array_2+array_3+array_4)/4
     d = (array_1 + array_2)/2
+    # d = (array_3 + array_4)/2
 
     # Вспомогательные параметры для преобразования Фурье
     sample_size = 2 ** 5  # 32
@@ -139,7 +152,7 @@ def remove_frame(img):
     # Если есть смена знака, то точку считаем внутренней границей рамки проверяем до 10% слева и справа
     left_border = 0
     right_border = -1
-    r = round(len(new_sample)*0.1)
+    r = round(len(new_sample)*frame_prc)
     for i in range(r):
         if new_sample[i] * new_sample[i + 1] < 0:
             left_border = i
