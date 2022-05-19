@@ -38,15 +38,17 @@ def get_without_back2(img):
     img2 = img.filter(cv.ImageFilter.UnsharpMask(radius=2, percent=150))
     return img2
 
+
 def get_without_back3(img):
     # img2 = cv.medianBlur(img2, 3)
-    kernel = np.array([[0, 0, 0],
-                       [-1, 7, 1],
-                       [0, 0, 0]])
+    kernel = np.array([[1, 0, -1],
+                       [2, 8, -2],
+                       [1, 0, -1]])
 
-    kernel = 1/5*kernel
+    kernel = 1/6*kernel
     img2 = cv.filter2D(img, -1, kernel)
     return img2
+
 
 def get_text_from_img(img, leng='rus+eng', oem='3', psm='4'):
     """
@@ -86,3 +88,66 @@ def similarity(s1, s2):
   normalized2 = s2.lower()
   matcher = difflib.SequenceMatcher(None, normalized1, normalized2)
   return matcher.ratio()
+
+
+def get_img_selected_text(img, leng='rus+eng', oem='3', psm='4'):
+    shape = img.shape
+    h, w = shape[0], shape[1]
+    custom_config = f'-l {leng} --oem {oem} --psm {psm}'
+
+    boxes = pytesseract.image_to_boxes(img, config=custom_config)
+
+    for b in boxes.splitlines():
+        b = b.split()
+        cv.rectangle(img, ((int(b[1]), h - int(b[2]))), ((int(b[3]), h - int(b[4]))), (0, 255, 0), 2)
+
+    return img
+
+
+def remove_frame(img):
+    sh = img.shape
+    h, w = sh[0], sh[1]
+
+    # Получаем массивы диагоналей
+    C = h/w
+    f = lambda x: round(C*x)
+    array_1 = np.array([img[f(xi), xi, :].sum() for xi in range(w)])
+    array_2 = np.array([img[f(xi), (w-1)-xi, :].sum() for xi in range(w)])
+
+    # Сигнал скачков яркости
+    d = (array_1 + array_2)/2
+
+    # Вспомогательные параметры для преобразования Фурье
+    sample_size = 2 ** 5  # 32
+
+    # Быстрое преобразование Фурье
+    spectrum = np.fft.fft(d)
+
+    # Фильтрация сигнала
+    pos_freq_i = np.arange(1, sample_size // 2, dtype=int)
+    psd = np.abs(spectrum[pos_freq_i]) ** 2 + np.abs(spectrum[-pos_freq_i]) ** 2
+    filtered = pos_freq_i[psd > 1e3]
+
+    # Новый спектр
+    new_spec = np.zeros_like(spectrum)
+    new_spec[filtered] = spectrum[filtered]
+    new_spec[-filtered] = spectrum[-filtered]
+
+    # Обратное преобразование Фурье
+    new_sample = np.real(np.fft.ifft(new_spec))
+
+    # Если есть смена знака, то точку считаем внутренней границей рамки проверяем до 10% слева и справа
+    left_border = 0
+    right_border = -1
+    r = round(len(new_sample)*0.1)
+    for i in range(r):
+        if new_sample[i] * new_sample[i + 1] < 0:
+            left_border = i
+            break
+    for i in range(r):
+        if new_sample[-i - 1] * new_sample[-i - 2] < 0:
+            right_border = -i
+            break
+
+    # Обрезаем рамочку
+    return (img[round(C*left_border):round(h+C*right_border), left_border:w+right_border])
