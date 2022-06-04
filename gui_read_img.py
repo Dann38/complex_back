@@ -1,5 +1,3 @@
-from turtle import Canvas
-
 from my_lib import *
 from tkinter import *
 from PIL import Image, ImageTk
@@ -18,11 +16,7 @@ def main(name_file):
     WIDTH = 900
     HEIGHT = WIDTH * height // width
 
-    img_without_frame1 = remove_frame(img, 0.05)
-    img_without_frame2 = remove_frame(img_without_frame1, 0.12)
-    only_text = get_without_back3(img_without_frame2)
-    # only_text = get_without_back3(img)
-
+    only_text = image_processing(img)
 
     rez1 = get_text_from_img(img)
     rez2 = get_text_from_img(only_text)

@@ -7,7 +7,7 @@ from sys import argv
 from Levenshtein import distance
 import cv2
 
-from my_lib import get_text_from_img, get_without_back, similarity, read_img, get_without_back3,remove_frame
+from my_lib import get_text_from_img, image_processing, similarity, read_img
 
 
 def main(argv):
@@ -60,12 +60,9 @@ def main(argv):
             save_text_path = os.path.join(output_folder, name + ".txt")
             save_origin_text_path = os.path.join(output_folder, name + "-origin" + ".txt")
 
-            # img_before = cv2.imread(path)
             img_before = read_img(path)
-            img_without_frame1 = remove_frame(img_before, 0.05)
-            img_without_frame2 = remove_frame(img_without_frame1, 0.14)
-            img_after = get_without_back3(img_without_frame2)
-            # img_after = img_without_frame
+            img_after = image_processing(img_before)
+
             text_before = get_text_from_img(img_before)
             text_after = get_text_from_img(img_after)
 
@@ -96,12 +93,14 @@ def main(argv):
                     print("=======================")
                     delta_similary = similarity_after-similarity_before
                     delta_levenshtein = (levenshtein_before - levenshtein_after) / size
+                    print(f"delta s: {delta_similary:.3f} ({bad_similarity})")
+                    print(f"delta l: {delta_levenshtein:.3f} ({bad_levenshtein})")
                     if bad_similarity > delta_similary:
                         bad_image_sim = name
                         bad_similarity = delta_similary
                     if bad_levenshtein > delta_levenshtein:
                         bad_image_lev = name
-                        bad_levenshtein = delta_similary
+                        bad_levenshtein = delta_levenshtein
                     statistics_print = True
                     n += 1
             except FileNotFoundError:
@@ -126,8 +125,9 @@ def main(argv):
         print(f"Before:\t {lev_before:5.2f}")
         print(f"After:\t {lev_after:5.2f}")
         print(f"Improvement  Levenshtein: {lev_improvement_percent:5.2f}%")
-        print(f"Bad image Similarity:\t  {bad_image_sim}\t (delta:{delta_similary*100:5.2f} %)")
-        print(f"Bad image Levenshtein:\t  {bad_image_lev}\t (delta:{delta_levenshtein*100:5.2f} %)")
+        print(f"Bad image Similarity:\t  {bad_image_sim}\t (delta:{bad_similarity*100:5.2f} %)")
+        print(f"Bad image Levenshtein:\t  {bad_image_lev}\t (delta:{bad_levenshtein*100:5.2f} %)")
+
 
 if __name__ == '__main__':
     main(argv[1:])
