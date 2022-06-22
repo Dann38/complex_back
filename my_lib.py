@@ -6,102 +6,74 @@ import difflib
 import numpy as np
 import matplotlib.pyplot as plt
 
+CONFIG_TESSERACT = '-l rus+eng --oem 3 --psm 3'
+"""
+-l - язык
+    0. rus
+    1. rus+eng
+--oem - какой движок использовать
+    0. Устаревший движок
+    1. Нейронная сеть LSTM
+    2. Устаревший движок и LSTM
+    3. По умолчанию
 
-def read_img(kyrillic_name):
-    with open(kyrillic_name, "rb") as f:
+--psm - сегментация страницы
+    0.  Только ориентация и обнаружение сценариев (экранное меню).
+    1.  Автоматическая сегментация страницы с помощью экранного меню.
+    2.  Автоматическая сегментация страницы, но без экранного меню или распознавания текста. (не реализовано)
+    3.  Полностью автоматическая сегментация страниц, но без экранного меню. (По умолчанию)
+    4.  Предположим, что один столбец текста имеет переменные размеры.
+    5.  Предположим, что это один однородный блок текста, выровненный по вертикали.
+    6.  Предположим, что это один однородный блок текста.
+    7.  Обрабатывайте изображение как одну текстовую строку.
+    8.  Рассматривайте изображение как одно слово.
+    9.  Рассматривайте изображение как одно слово в круге.
+    10. Обрабатывайте изображение как один символ.
+    11. Редкий текст. Найдите как можно больше текста в произвольном порядке.
+    12. Разреженный текст с экранным меню.
+    13. Необработанная линия. Обрабатывайте изображение как одну текстовую строку,
+    минуя хаки, специфичные для Тессеракта.
+"""
+
+
+def read_img(name_file):
+    """
+    Позволяет открывать изображения с разными именами,
+    в случае когда имя содержит киррилические символы,
+    возникают проблемы чтения функции cv2.imread
+    :param name_file: имя файла;
+    :return: изображение как объект
+    """
+    with open(name_file, "rb") as f:
         chunk = f.read()
     chunk_arr = np.frombuffer(chunk, dtype=np.uint8)
     img = cv.imdecode(chunk_arr, cv.IMREAD_COLOR)
     return img
 
 
-def get_without_back(img, wt=0.75, md=17):
-    """
-    :param img: Изображение у которого необходимо убрать фон
-    :param wt: Вес фона [0-1] рекомендуемое значение 0.8
-    :param md: Медиана размытия, рекомендуется 17 пикселей
-    :return: Исправленное изображение
-    """
-    # img_ = (img - cv.medianBlur(img, 31)*wt)
-    img_ = (img - cv.medianBlur(img, md) * wt)
-    low_background = (1, 1, 1)
-    high_background = (255, 255, 255)
-    only_text = cv.inRange(img_, low_background, high_background)
-    # ====================== Выделить белые строки ===============================
-    # for i in range(len(only_text.sum(1))):
-    #     if only_text.sum(1)[i] > only_text.sum(1).max()*0.80 :
-    #         only_text[i] = 255
-    return only_text
-
-
-def get_without_back2(img):
-    # img2 = cv.medianBlur(img2, 3)
-    img2 = img.filter(cv.ImageFilter.UnsharpMask(radius=2, percent=150))
-    return img2
-
-
-def get_without_back3(img):
-    shape = img.shape
-    h, w = shape[0], shape[1]
-    yar = img.sum() / (w * h * 3 * 255)
-    yar = (0.5 + abs(0.5 - yar))*0.95
-
-    print(yar)
-    kernel = np.array([[1, 0, -1],
-                       [1, 6, 1],
-                       [1, 0, -1]])
-
-    kernel = 1/(8*yar)*kernel
-
-    img2 = cv.filter2D(img, -1, kernel)
-
-    return img2
-
-
-def get_without_back4(img):
-    # img2 = cv.blur(img, (5,5))
-    x = img.ravel()
-    up = x.mean()/1.618
-    # print(up)
-    # img_array = img.sum(axis=2)
-    _, img2 = cv.threshold(img, up, 255, 0)
-    # plt.plot(img2)
-    # plt.show()
-    # img2 = cv.blur(img2, (3,3))
-    return img + img2
-
-
-def get_text_from_img(img, leng='rus+eng', oem='3', psm='4'):
-    """
-    :param leng - язык
-        0. rus
-    :param oem - какой движок использовать
-        0. Устаревший движок
-        1. Нейронная сеть LSTM
-        2. Устаревший движок и LSTM
-        3. По умолчанию
-
-    :param psm - сегментация страницы
-        0.  Только ориентация и обнаружение сценариев (экранное меню).
-        1.  Автоматическая сегментация страницы с помощью экранного меню.
-        2.  Автоматическая сегментация страницы, но без экранного меню или распознавания текста. (не реализовано)
-        3.  Полностью автоматическая сегментация страниц, но без экранного меню. (По умолчанию)
-        4.  Предположим, что один столбец текста имеет переменные размеры.
-        5.  Предположим, что это один однородный блок текста, выровненный по вертикали.
-        6.  Предположим, что это один однородный блок текста.
-        7.  Обрабатывайте изображение как одну текстовую строку.
-        8.  Рассматривайте изображение как одно слово.
-        9.  Рассматривайте изображение как одно слово в круге.
-        10. Обрабатывайте изображение как один символ.
-        11. Редкий текст. Найдите как можно больше текста в произвольном порядке.
-        12. Разреженный текст с экранным меню.
-        13. Необработанная линия. Обрабатывайте изображение как одну текстовую строку,
-        минуя хаки, специфичные для Тессеракта.
-    :return: text - возвращает текст
-    """
-    custom_config = f'-l {leng} --oem {oem} --psm {psm}'
+def get_text_from_img(img, custom_config=CONFIG_TESSERACT):
     text = pytesseract.image_to_string(img, config=custom_config)
     return text
+
+
+def get_img_selected_text(img, custom_config=CONFIG_TESSERACT):
+    shape = img.shape
+    h, w = shape[0], shape[1]
+
+    boxes = pytesseract.image_to_boxes(img, config=custom_config)
+
+    for b in boxes.splitlines():
+        b = b.split()
+        cv.rectangle(img, (int(b[1]), h - int(b[2])), (int(b[3]), h - int(b[4])), (0, 255, 0), 1)
+
+    return img
+
+
+def get_info_from_img(img):
+    text = get_text_from_img(img)
+    img = get_img_selected_text(img)
+
+    return text, img
 
 
 def similarity(s1, s2):
@@ -111,18 +83,80 @@ def similarity(s1, s2):
     return matcher.ratio()
 
 
-def get_img_selected_text(img, leng='rus+eng', oem='3', psm='4'):
+def subtracting_white_spots(img, wt=0.75, md=17):  # ПЕРВАЯ ЭВРИСТИКА
+    """
+    Происходит размытие фона медийным фильтром. Получаем светлые и темные пятна.
+    С определенным весом отнимается из исходного изображения полученные пятна,
+    темные пятна не влияют (малые значения), а вот белые оказывают влияние.
+    Как правило, текст темные пятна, а фон светлые.
+    :param img: Изображение у которого необходимо убрать фон;
+    :param wt: Вес фона [0-1] рекомендуемое значение 0.75;
+    :param md: Медиана размытия, рекомендуется 17 пикселей;
+    :return: Исправленное изображение
+    """
+
+    img = (img - cv.medianBlur(img, md) * wt)
+    low_background = (1, 1, 1)
+    high_background = (255, 255, 255)
+    only_text = cv.inRange(img, low_background, high_background)
+
+    return only_text
+
+
+def sharpening(img):
+    """
+    НАДО ОПИСАТЬ
+    :param img: исходное изображение;
+    :return: изображение с повышенной резкостью
+    """
+    gaussian = cv.GaussianBlur(img, (0, 0), 2.0)
+    after_img = cv.addWeighted(img, 2.0, gaussian, -1.0, 0)
+    return after_img
+
+
+def convolution_method(img):
+    """
+    Свертка. Значение пикселя изображения зависит также от соседних пикселей.
+    :param img: Исходное изображение;
+    :return: После свертки.
+    """
+    # kernel = np.array([[1, 0, -1],
+    #                    [2, 6, -2],
+    #                    [1, 0, -1]])
+    kernel = np.array([[1, 0, -1],
+                       [1, 6, 1],
+                       [1, 0, -1]])
+
+    kernel = 1/(kernel.sum())*kernel
+
+    img2 = cv.filter2D(img, -1, kernel)
+
+    return img2
+
+
+def balance_brightness(img):
+    """
+    Исправление яркости изображения.
+    :param img: исходное изображение;
+    :return: Изображение с исправленной яркостью
+    """
     shape = img.shape
     h, w = shape[0], shape[1]
-    custom_config = f'-l {leng} --oem {oem} --psm {psm}'
-
-    boxes = pytesseract.image_to_boxes(img, config=custom_config)
-
-    for b in boxes.splitlines():
-        b = b.split()
-        # cv.rectangle(img, ((int(b[1]), h - int(b[2]))), ((int(b[3]), h - int(b[4]))), (0, 255, 0), 2)
-
+    yar0 = img.sum() / (w * h * 3 * 255)
+    yar = (0.5 + abs(0.5 - yar0)) * 0.95
+    img = cv.filter2D(img, -1, 1/yar)
     return img
+
+
+def get_without_back4(img):
+    # img2 = cv.blur(img, (5,5))
+    x = img.ravel()
+    up = x.mean()/1.618
+    # print(up)
+    # img_array = img.sum(axis=2)
+    _, img2 = cv.threshold(img, up, 255, 0)
+
+    return img + img2
 
 
 def remove_frame(img, frame_prc=0.1):
@@ -309,24 +343,88 @@ def remove_frame(img, frame_prc=0.1):
     return (img[top_border:h+bottom_border, left_border:w+right_border])
 
 
-# def adjust_gamma(image, gamma=1.0):
-# 	# build a lookup table mapping the pixel values [0, 255] to
-# 	# their adjusted gamma values
-# 	invGamma = 1.0 / gamma
-# 	table = np.array([((i / 255.0) ** invGamma) * 255
-# 		for i in np.arange(0, 256)]).astype("uint8")
-#
-# 	# apply gamma correction using the lookup table
-# 	return cv.LUT(image, table)
+def remove_frame2(img, proc):
+    sh = img.shape
+    h, w = sh[0], sh[1]
+    img_array = img.sum(axis=2) / (255 * 3)
+
+    delta = round(w*proc)
+    array_h = np.zeros(w)
+    for i in range(delta, h-delta, 10):
+        array_h += img_array[i, :]
+
+    delta = round(h * proc)
+    array_w = np.zeros(h)
+    for i in range(delta, w-delta, 10):
+        array_w += img_array[:, i]
+
+    hampel_h = hampel(array_h)
+    hampel_w = hampel(array_w)
+
+    left_border = 0
+    right_border = -1
+    for i in range(h):
+        if i < w*proc and hampel_h[i]:
+            left_border = i
+    for i in range(1, h):
+        if i < w*proc and hampel_h[-i]:
+            right_border = -i
+
+    top_border = 0
+    bottom_border = -1
+    for i in range(w):
+        if i < h*proc and hampel_w[i]:
+            top_border = i
+    for i in range(1, w):
+        if i < h*proc and hampel_w[-i]:
+            bottom_border = -i
+
+    return img[top_border+h//100:bottom_border-h//100, left_border+w//100:right_border-w//100, :]
+
+
+def hampel(vals_orig):
+    vals = vals_orig
+    difference = np.abs(vals.mean()-vals)
+    median_abs_deviation = difference.mean()
+    threshold = 3 * median_abs_deviation
+    outlier_idx = difference > threshold
+    return outlier_idx
 
 
 def image_processing(img):
+    """
+    :param img:
+    :return: исправленное изображение
+    """
+    # # ПЕРВАЯ ЭВРИСТИКА ========================================================
+    # img_after = subtracting_white_spots(img)
+    # # =========================================================================
+
+    # # ВТОРАЯ ЭВРИСТИКА ========================================================
+    # img_after = sharpening(img)
+    # # =========================================================================
+
+    # # ТРЕТЬЯ ЭВРИСТИКА ========================================================
+    # img_after = balance_brightness(img)
+    # # =========================================================================
+
+    # # ЧЕТВЕРТАЯ ЭВРИСТИКА =====================================================
+    # img_after = convolution_method(img)
+    # # =========================================================================
+
     # img_without_frame1 = remove_frame(img, 0.06)
     # img_without_frame2 = remove_frame(img_without_frame1, 0.14)
     # img_after = get_without_back3(img_without_frame2)
 
-    img_after = remove_frame(img, 0.06)
-    img_after = remove_frame(img_after, 0.14)
-    img_after = get_without_back3(img_after)
+    img_after = remove_frame2(img, 0.14)
+    img_after = balance_brightness(img_after)
+    img_after = convolution_method(img_after)
     img_after = get_without_back4(img_after)
+
     return img_after
+
+
+def reading_text(img):
+    img_after = image_processing(img)
+    text_before, img_before = get_info_from_img(img)
+    text_after, img_after = get_info_from_img(img_after)

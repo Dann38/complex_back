@@ -18,10 +18,9 @@ def main(name_file):
 
     only_text = image_processing(img)
 
-    rez1 = get_text_from_img(img)
-    rez2 = get_text_from_img(only_text)
+    rez1, img = get_info_from_img(img)
+    rez2, only_text = get_info_from_img(only_text)
 
-    only_text = get_img_selected_text(only_text)
     # Графический интерфейс =====================================================
     root = Tk()
     root.title("GUI на Python")
