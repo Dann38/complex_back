@@ -7,37 +7,38 @@ from sys import argv
 from Levenshtein import distance
 import cv2
 
-from my_lib import get_text_from_img, image_processing, similarity, read_img
+from my_lib import get_text_from_img, image_processing, similarity, read_img, get_input_output_folder
 
 
 def main(argv):
-    input_folder = ''
-    output_folder = ''
-
-    try:
-        opts, args = getopt.getopt(argv, "hi:o:", ["input_folder=", "output_folder="])
-    except getopt.GetoptError:
-        print('script.py -i <input folder> -o <output folder>')
-        sys.exit(2)
-
-    for opt, arg in opts:
-        if opt == '-h':
-            print('script.py -i <input folder> -o <output folder>')
-            sys.exit()
-        elif opt in ("-i", "--i"):
-            input_folder = arg
-        elif opt in ("-o", "--o"):
-            output_folder = os.path.join(arg, 'images')
-
-    is_dir = os.path.isdir(input_folder)
-
-    if not is_dir:
-        raise Exception(input_folder, "- It is not a folder")
-
-    if os.path.exists(output_folder):
-        shutil.rmtree(output_folder)
-
-    os.makedirs(output_folder)
+    # input_folder = ''
+    # output_folder = ''
+    #
+    # try:
+    #     opts, args = getopt.getopt(argv, "hi:o:", ["input_folder=", "output_folder="])
+    # except getopt.GetoptError:
+    #     print('script.py -i <input folder> -o <output folder>')
+    #     sys.exit(2)
+    #
+    # for opt, arg in opts:
+    #     if opt == '-h':
+    #         print('script.py -i <input folder> -o <output folder>')
+    #         sys.exit()
+    #     elif opt in ("-i", "--i"):
+    #         input_folder = arg
+    #     elif opt in ("-o", "--o"):
+    #         output_folder = os.path.join(arg, 'images')
+    #
+    # is_dir = os.path.isdir(input_folder)
+    #
+    # if not is_dir:
+    #     raise Exception(input_folder, "- It is not a folder")
+    #
+    # if os.path.exists(output_folder):
+    #     shutil.rmtree(output_folder)
+    #
+    # os.makedirs(output_folder)
+    input_folder, output_folder = get_input_output_folder()
 
     n = 0
     total_similarity_before = 0

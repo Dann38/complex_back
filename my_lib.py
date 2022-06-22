@@ -1,10 +1,15 @@
 import random
+import sys
 
 import cv2 as cv
 import pytesseract
 import difflib
 import numpy as np
 import matplotlib.pyplot as plt
+
+import shutil
+import argparse
+import os
 
 CONFIG_TESSERACT = '-l rus+eng --oem 3 --psm 3'
 """
@@ -428,3 +433,28 @@ def reading_text(img):
     img_after = image_processing(img)
     text_before, img_before = get_info_from_img(img)
     text_after, img_after = get_info_from_img(img_after)
+
+
+def get_input_output_folder():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', help="Папка с изображениями для обработки")
+    parser.add_argument('-o', '--output', help="Папка для записи результатов")
+    parser.add_argument('-ow', '--overwrite', action='store_true', default=False,
+                        help="Указывается в случае перезаписи результатов")
+
+    namespace = parser.parse_args()
+    input_dir = namespace.input
+    output_dir = namespace.output
+
+    is_dir = os.path.isdir(input_dir)
+    if not is_dir:
+        print(input_dir, "- Не удалось найти папку")
+        sys.exit(1)
+    if os.path.exists(output_dir) and namespace.overwrite:
+        shutil.rmtree(output_dir)
+    elif os.path.exists(output_dir):
+        print(output_dir, "- Эта папка уже существует. Для перезаписи добавьте -ow или --overwrite")
+        sys.exit(1)
+    os.makedirs(output_dir)
+
+    return input_dir, output_dir
