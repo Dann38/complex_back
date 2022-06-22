@@ -11,6 +11,7 @@ import shutil
 import argparse
 import os
 
+from Levenshtein import distance
 CONFIG_TESSERACT = '-l rus+eng --oem 3 --psm 3'
 """
 -l - язык
@@ -458,3 +459,49 @@ def get_input_output_folder():
     os.makedirs(output_dir)
 
     return input_dir, output_dir
+
+
+def checking_for_improvement(text_after, text_before, gs_name, st_info, name_file="IMAGE"):
+    with open(gs_name, 'r', encoding="UTF-8") as f:
+        wt_1 = 1 / (st_info['n'] + 1)
+        wt_n = st_info['n'] * wt_1
+
+        text_gs = f.read()
+        similarity_before = similarity(text_gs, text_before)
+        similarity_after = similarity(text_gs, text_after)
+
+        st_info["total_similarity_before"] = wt_n * st_info["total_similarity_before"] + wt_1 * similarity_before
+        st_info["total_similarity_after"] = wt_n * st_info["total_similarity_after"] + wt_1 * similarity_after
+
+        size = len(text_gs)
+        levenshtein_before = distance(text_gs, text_before) / size
+        levenshtein_after = distance(text_gs, text_after) / size
+
+        st_info["total_levenshtein_before"] = wt_n * st_info["total_levenshtein_before"] + wt_1 * levenshtein_before
+        st_info["total_levenshtein_after"] = wt_n * st_info["total_levenshtein_after"] + wt_1 * levenshtein_after
+
+        print()
+        print(
+            f"{name_file}:\tSimilarity: \t"
+            f" Before: {100 * similarity_before :5.2f}%\t"
+            f" After: {100 * similarity_after :5.2f}%")
+        print(
+            f"{name_file}:\tLevenshtein:\t"
+            f" Before: {levenshtein_before:5.2f}\t"
+            f" After: {levenshtein_after:5.2f}")
+        print("=======================")
+
+        st_info["n"] += 1
+
+
+def print_statistic(statistical_information):
+    lev_before = statistical_information["total_levenshtein_before"]
+    lev_after = statistical_information["total_levenshtein_after"]
+    lev_improvement_percent = (lev_before - lev_after) * 100
+    print("Total Similarity ========================")
+    print(f"Before:\t {100 * statistical_information['total_similarity_before']:5.2f} %")
+    print(f"After:\t {100 * statistical_information['total_similarity_after']:5.2f} %")
+    print("Total Levenshtein =======================")
+    print(f"Before:\t {lev_before:5.2f}")
+    print(f"After:\t {lev_after:5.2f}")
+    print(f"Improvement  Levenshtein: {lev_improvement_percent:5.2f}%")
