@@ -472,10 +472,11 @@ def image_processing(img):
     # # ШЕСТАЯ ЭВРИСТИКА =========================================================
     # img_after = golden_ratio_back(img)
     # # ==========================================================================
-    img_after = img
+    img_after = puzzles(golden_ratio_back, img)
+
     # # ==========================================================================
     # img_after = remove_white_back(img, 0.1)
-    # img_after = remove_frame2(img_after, 0.15)
+    # img_after = remove_frame_by_outlier(img_after, 0.15)
     # img_after = balance_brightness(img_after)
     # img_after = convolution_method(img_after)
     # img_after = golden_ratio_back(img_after)
@@ -506,6 +507,14 @@ def get_input_output_folder():
     os.makedirs(output_dir)
 
     return input_dir, output_dir
+
+
+def get_img():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('name_img', help="Путь до изображения")
+    namespace = parser.parse_args()
+    img = read_img(namespace.name_img)
+    return img
 
 
 def checking_for_improvement(text_after, text_before, gs_name, st_info, name_file="IMAGE"):
@@ -552,3 +561,16 @@ def print_statistic(statistical_information):
     print(f"Before:\t {lev_before:5.2f}")
     print(f"After:\t {lev_after:5.2f}")
     print(f"Improvement  Levenshtein: {lev_improvement_percent:5.2f}%")
+
+
+def puzzles(func, img):
+    N = 20
+    sh = img.shape
+    h, w = sh[0]//N, sh[1]//N
+    new_img = img.copy()
+    for i in range(N):
+        for j in range(N):
+            new_img[i*h:(i+1)*h, j*w:(j+1)*w, :] = func(img[i*h:(i+1)*h, j*w:(j+1)*w, :])
+
+    return new_img
+
