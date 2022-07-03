@@ -2,9 +2,11 @@ import fnmatch
 import os
 
 import cv2
+from img_processing import image_processing
+from lib.text_evaluation import checking_for_improvement
+from lib.img_info import get_text_from_img, print_statistic
 
-from my_lib import get_text_from_img, image_processing, read_img, get_input_output_folder, \
-    checking_for_improvement, print_statistic
+from lib.entry import get_input_output_folder, read_img
 
 
 def main():

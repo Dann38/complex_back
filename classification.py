@@ -1,4 +1,5 @@
-from my_lib import get_img, get_info_from_img, golden_ratio_back
+from lib.entry import get_img
+from lib.img_info import get_info_from_img, info
 from tkinter import *
 from PIL import Image, ImageTk
 import cv2 as cv
@@ -18,16 +19,12 @@ class App:
         self.imgs = [img]
 
         self.img_and_text_gui_block(rez1, 0)
-        img2 = golden_ratio_back(img[height//2-100:height//2+100, width//2-100:width//2+100, :])
-        cv.imshow("", img2)
-        info = f"""
-height: {height} \t width: {width} \t({height*width})
-yar: {img.sum() / (width * height * 3 * 255):5.2f}
-mean: {img.mean():5.2f}
-        """
+
+        info_img = info(img)
+
         text = Text(self.root, width=40, height=30)
         text.pack(side=LEFT)
-        text.insert('1.0', info)
+        text.insert('1.0', info_img)
         self.root.mainloop()
 
     def img_and_text_gui_block(self, text_img, index_img):

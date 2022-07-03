@@ -1,7 +1,9 @@
-from my_lib import *
 from tkinter import *
 from PIL import Image, ImageTk
 import cv2 as cv
+from img_processing import image_processing
+from lib.entry import get_img
+from lib.img_info import get_info_from_img
 
 
 class App:
