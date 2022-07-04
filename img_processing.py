@@ -1,9 +1,8 @@
-from lib.entry import get_coefficients_reg_model
-from lib.luminance import balance_brightness
-from lib.blur import *
-from lib.binary import *
-from lib.frame import *
-from lib.img_info import *
+from complex_back.lib.luminance import balance_brightness
+from complex_back.lib.blur import *
+from complex_back.lib.binary import *
+from complex_back.lib.frame import *
+from complex_back.lib.img_info import *
 
 
 def image_processing(img, data_reg_model=None, statistical_information=None):

@@ -1,6 +1,5 @@
+import copy
 import os.path
-import random
-import re
 
 import cv2 as cv
 import numpy as np
@@ -46,12 +45,12 @@ def get_img_selected_text(img, custom_config=CONFIG_TESSERACT):
     h, w = shape[0], shape[1]
 
     boxes = pytesseract.image_to_boxes(img, config=custom_config)
-
+    img2 = copy.copy(img)
     for b in boxes.splitlines():
         b = b.split()
-        cv.rectangle(img, (int(b[1]), h - int(b[2])), (int(b[3]), h - int(b[4])), (0, 255, 0), 1)
+        cv.rectangle(img2, (int(b[1]), h - int(b[2])), (int(b[3]), h - int(b[4])), (0, 255, 0), 1)
 
-    return img
+    return img2
 
 
 def get_info_from_img(img):
