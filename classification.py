@@ -20,8 +20,8 @@ class App:
 
         self.img_and_text_gui_block(rez1, 0)
 
-        info_img = info(img)
-
+        data = info(img)
+        info_img = f"count px: \t{data[0]} px\nluminance: \t{data[1]:5.2f}"
         text = Text(self.root, width=40, height=30)
         text.pack(side=LEFT)
         text.insert('1.0', info_img)

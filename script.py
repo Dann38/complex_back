@@ -4,9 +4,9 @@ import os
 import cv2
 from img_processing import image_processing
 from lib.text_evaluation import checking_for_improvement
-from lib.img_info import get_text_from_img, print_statistic
+from lib.img_info import get_text_from_img, print_statistic, create_statistic_file
 
-from lib.entry import get_input_output_folder, read_img
+from lib.entry import get_input_output_folder, read_img, get_coefficients_reg_model
 
 
 def main():
@@ -18,8 +18,10 @@ def main():
         "total_similarity_after": 0,
         "total_levenshtein_before": 0,
         "total_levenshtein_after": 0,
+        "about_images": []
     }
-
+    coefficients_reg_model = get_coefficients_reg_model("coefficients_reg_model.dat")
+    coefficients_reg_model = None
     statistics_print = True
 
     for root, directories, files in os.walk(input_folder):
@@ -32,7 +34,9 @@ def main():
             save_origin_text_path = os.path.join(output_folder, name + "-origin" + ".txt")
 
             img_before = read_img(path)
-            img_after = image_processing(img_before)
+            img_after = image_processing(img_before,
+                                         statistical_information=statistical_information,
+                                         data_reg_model=coefficients_reg_model)
 
             text_before = get_text_from_img(img_before)
             text_after = get_text_from_img(img_after)
@@ -54,6 +58,7 @@ def main():
 
     if statistics_print:
         print_statistic(statistical_information)
+        create_statistic_file(output_folder, statistical_information)
 
 
 if __name__ == '__main__':

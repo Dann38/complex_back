@@ -53,3 +53,11 @@ def get_img():
     namespace = parser.parse_args()
     img = read_img(namespace.name_img)
     return img
+
+
+def get_coefficients_reg_model(name_file):
+    with open(name_file, "r") as f:
+        text = f.read()
+        coefficients = text.split()
+        coefficients = [float(item) for item in coefficients]
+    return coefficients

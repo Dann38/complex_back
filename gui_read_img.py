@@ -18,8 +18,8 @@ class App:
 
         only_text = image_processing(img)
 
-        rez1, img = get_info_from_img(img)
         rez2, only_text = get_info_from_img(only_text)
+        rez1, img = get_info_from_img(img)
         self.imgs = [img, only_text]
 
         self.img_and_text_gui_block(rez1, 0)

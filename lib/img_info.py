@@ -1,7 +1,9 @@
+import os.path
 import random
 import re
 
 import cv2 as cv
+import numpy as np
 import pytesseract
 
 CONFIG_TESSERACT = '-l rus --oem 3 --psm 3'
@@ -73,40 +75,19 @@ def print_statistic(statistical_information):
 
 
 def info(img):
+    """
+    Возвращает массив с информацией о изображение
+    :param img: исходное изображение;
+    :return: [число пикселей, яркость]
+    """
     height, width = img.shape[:2]
-    dh = height // 10
-    dw = width // 10
-    run = True
-    k = 0
+    luminance = img.sum() / (width * height * 3 * 255)
+    count_px = height * width
+    return [count_px, luminance]
 
-    size_litter = 0
-    while run and k < 10:
-        h_point = 2*dh + round(random.random()*(height-4*dh))
-        w_point = 2*dw + round(random.random()*(width-4*dw))
-        img2 = img[h_point - dh:h_point+dh, w_point - dw:w_point+dw, :]
-        boxes = pytesseract.image_to_boxes(img2, config=CONFIG_TESSERACT)
 
-        boxes = boxes.splitlines()
-        n = len(boxes)
-        str_ = ''.join([item[0] for item in boxes])
-        match = re.search(r'([А-Яа-я]){3}', str_)
+def create_statistic_file(folder, statistical_information):
+    array = statistical_information["about_images"]
+    with open(os.path.join(folder, "data.npy"), 'wb') as f:
+        np.save(f, np.array(array))
 
-        if match is None:
-            k += 1
-            continue
-        else:
-            run = False
-        boxes = [boxes[i] for i in range(*match.span())]
-
-        for item in boxes:
-            item = item.split()
-            size_litter = size_litter + int(item[4]) - int(item[2])
-        size_litter = size_litter/3
-
-    info_ = f"""
-    height: {height} \t width: {width} \t({height * width})
-    yar: {img.sum() / (width * height * 3 * 255):5.2f}
-    mean: {img.mean():5.2f}
-    font: {round(size_litter*0.5)}-{round(size_litter*1.5)} px
-"""
-    return info_, [height * width, img.sum() / (width * height * 3 * 255), img.mean(), size_litter]

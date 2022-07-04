@@ -28,6 +28,9 @@ def checking_for_improvement(text_after, text_before, gs_name, st_info, name_fil
         st_info["total_levenshtein_before"] = wt_n * st_info["total_levenshtein_before"] + wt_1 * levenshtein_before
         st_info["total_levenshtein_after"] = wt_n * st_info["total_levenshtein_after"] + wt_1 * levenshtein_after
 
+        if len(st_info["about_images"]) > 0:
+            st_info["about_images"][-1] = [*st_info["about_images"][-1], levenshtein_before-levenshtein_after]
+
         print()
         print(
             f"{name_file}:\tSimilarity: \t"
