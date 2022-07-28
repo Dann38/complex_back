@@ -55,7 +55,7 @@ def get_img_selected_text(img, custom_config=CONFIG_TESSERACT):
 
 def get_info_from_img(img):
     text = get_text_from_img(img)
-    img = get_img_selected_text(img)
+    # img = get_img_selected_text(img)
 
     return text, img
 

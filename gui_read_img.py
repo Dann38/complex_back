@@ -4,7 +4,7 @@ import cv2 as cv
 from img_processing import image_processing
 from lib.entry import get_img
 from lib.img_info import get_info_from_img
-
+from lib.binarization import binarize
 
 class App:
     def __init__(self):
@@ -20,6 +20,8 @@ class App:
 
         rez2, only_text = get_info_from_img(only_text)
         rez1, img = get_info_from_img(img)
+        # img_rez = binarize(img)
+        # rez1, img = get_info_from_img(img_rez)
         self.imgs = [img, only_text]
 
         self.img_and_text_gui_block(rez1, 0)
