@@ -4,7 +4,7 @@ import numpy as np
 
 def subtracting_white_spots(img, wt=0.75, md=17):  # ПЕРВАЯ ЭВРИСТИКА
     """
-    Происходит размытие фона медийным фильтром. Получаем светлые и темные пятна.
+    Происходит размытие фона медианным фильтром. Получаем светлые и темные пятна.
     С определенным весом отнимается из исходного изображения полученные пятна,
     темные пятна не влияют (малые значения), а вот белые оказывают влияние.
     Как правило, текст темные пятна, а фон светлые.
@@ -14,11 +14,10 @@ def subtracting_white_spots(img, wt=0.75, md=17):  # ПЕРВАЯ ЭВРИСТИ
     :return: Исправленное изображение
     """
 
-    img = (img - cv.medianBlur(img, md) * wt)
     low_background = (1, 1, 1)
     high_background = (255, 255, 255)
-    only_text = cv.inRange(img, low_background, high_background)
-
+    only_text = cv.addWeighted(img, 1, cv.medianBlur(img, md), -wt, 0)
+    only_text = cv.inRange(only_text, low_background, high_background)
     return only_text
 
 
