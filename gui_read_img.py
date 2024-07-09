@@ -4,8 +4,8 @@ import cv2 as cv
 from img_processing import image_processing
 from lib.entry import get_img
 from lib.img_info import get_info_from_img
-from lib.binarization import binarize
-
+from lib.valley_emphasis_binarizer import ValleyEmphasisBinarizer
+binarize = ValleyEmphasisBinarizer().binarize
 class App:
     def __init__(self):
         self.root = Tk()
